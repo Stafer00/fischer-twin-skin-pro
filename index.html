@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fischer Twin Skin PRO – skidval</title>
+
+  <meta name="theme-color" content="#1b5e20">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="manifest" href="manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #f5f5f7;
+      padding: 16px;
+    }
+    h1 { font-size: 22px; margin-bottom: 4px; }
+    p { color: #555; margin-bottom: 16px; }
+    input, button {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      margin-bottom: 12px;
+    }
+    button {
+      background: #1b5e20;
+      color: white;
+      border: none;
+      border-radius: 6px;
+    }
+    .card {
+      background: white;
+      padding: 12px;
+      border-radius: 10px;
+      margin-top: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .best {
+      border-left: 6px solid #2e7d32;
+      background: #e8f5e9;
+    }
+    .alt {
+      border-left: 6px solid #f9a825;
+      background: #fffde7;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+    .badge.best { background: #2e7d32; color: white; }
+    .badge.alt { background: #f9a825; color: black; }
+    .muted { color: #666; font-size: 14px; }
+  </style>
+</head>
+<body>
+
+<h1>Fischer Twin Skin PRO</h1>
+<p>Välj rätt skidlängd och flex baserat på åkarvikt.</p>
+
+<input type="number" id="weight" placeholder="Ange åkarens vikt (kg)">
+<button onclick="search()">Visa rekommenderade skidor</button>
+
+<div id="results"></div>
+
+<script>
+const database = [
+  { length: 187, flex: "Medium", min: 55, max: 65 },
+  { length: 187, flex: "Stiff",  min: 65, max: 75 },
+  { length: 192, flex: "Medium", min: 60, max: 70 },
+  { length: 192, flex: "Stiff",  min: 70, max: 80 },
+  { length: 197, flex: "Medium", min: 65, max: 75 },
+  { length: 197, flex: "Stiff",  min: 75, max: 85 },
+  { length: 202, flex: "Medium", min: 70, max: 80 },
+  { length: 202, flex: "Stiff",  min: 80, max: 90 },
+  { length: 207, flex: "Stiff",  min: 85, max: 95 }
+];
+
+function search() {
+  const weight = parseInt(document.getElementById("weight").value);
+  const results = document.getElementById("results");
+  results.innerHTML = "";
+  if (!weight) return;
+
+  const matches = database
+    .filter(s => weight >= s.min && weight <= s.max)
+    .map(s => {
+      const mid = (s.min + s.max) / 2;
+      return { ...s, diff: Math.abs(weight - mid) };
+    })
+    .sort((a, b) => a.diff - b.diff);
+
+  if (matches.length === 0) {
+    results.innerHTML = "<p class='muted'>Ingen exakt match hittades.</p>";
+    return;
+  }
+
+  matches.forEach(s => {
+    const best = s.diff <= 2;
+    const card = document.createElement("div");
+    card.className = "card " + (best ? "best" : "alt");
+    card.innerHTML = `
+      <span class="badge ${best ? "best" : "alt"}">
+        ${best ? "Bästa val" : "Alternativ"}
+      </span><br>
+      <strong>Fischer Twin Skin PRO</strong><br>
+      Längd: ${s.length} cm<br>
+      Flex: ${s.flex}<br>
+      <span class="muted">Rekommenderad vikt: ${s.min}–${s.max} kg</span>
+    `;
+    results.appendChild(card);
+  });
+}
+
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("service-worker.js");
+}
+</script>
+
+</body>
+</html>
